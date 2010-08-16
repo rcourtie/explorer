@@ -9,14 +9,18 @@
 
 $doNotRunTemplateProcessing = true;
 require_once '../../process.php';
+require_once 'lib/spyc.php';
+
+$db_data = Spyc::YAMLLoad("config/db.yml");
+print_r($db_data);
 
 $db = mysql_connect(
-    "localhost",
-    "clicker",
-    "Cl!ckaway4916"
+    $db_data["url"],
+    $db_data["user"],
+    $db_data["password"]
 ) or die ("Failed to connect to MySQL");
 
-mysql_select_db("clicker_SQL07", $db) or die("Unable to select database");
+mysql_select_db($db_data["database"], $db) or die("Unable to select database");
 
 $params = array();
 if(!isset($_GET["object"])) {
