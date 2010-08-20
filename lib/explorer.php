@@ -8,107 +8,137 @@
 
 /**
  *
- * Create a table from the results
+ * This class will handle all the fun stuff of creating the proper view for
+ * a $result for an object.
  *
  */
-function create_table($result,$params = array()) {
-    $html = "<table>";
-    $rows = mysql_num_rows($result);
-    if($rows > 1) {
-        $html .= create_table_header($result);
-        $html .= create_table_body($result);
-    } elseif($rows == 1) {
-        $html .= create_single_item_table($result);
-    } else {
-        $html .= "No results";
-    }
-    $html .= "</table";
-    return $html;
-}
+class ObjectView {
+    public $links = array();
+    public $related = array();
+    public $data;
+    public $object;
 
-/**
- *
- * Create table header
- *
- */
-function create_table_header($result) {
-    if(mysql_num_rows($result) == 0) return "";
-    $header = "<tr>\n";
-    $fields = mysql_field_array($result);
-    foreach($fields as $f) {
-        $header .= "\t<th>".$f."</th>\n";
+    /**
+     *
+     * Constructor. Expects a MySQL result and two arrays.
+     *
+     */
+    function __construct($data, $links, $related, $object = "") {
+        $this->object = $object;
+        $this->data = $data;
+        $this->links = $links;
+        $this->related = $related;
     }
-    $header .= "</tr>\n";
-    return $header;
-}
-/**
- *
- * Create a table for a single object
- *
- */
-function create_single_item_table($result,$file="index.php") {
-    $table_body = "";
-    $zebra = true;
-    $row = mysql_fetch_assoc($result);
-    foreach($row as $k => $v) {
-        $table_body .= "<tr class=\"";
-        $table_body .= $zebra ? "dark" : "light";
-        $table_body .= "\">\n";
-        $table_body .= "\t<td>";
-        $table_body .= $k;
-        $table_body .= "</td>\n";
-        $table_body .= "\t<td>";
-        $table_body .= link_to($k,$v,$file);
-        $table_body .= "</td>\n";
-        $table_body .= "</tr>\n";
-        $zebra = $zebra ? false : true;
-    }
-    return $table_body;
-}
 
-/**
- *
- * Create table rows and table cells from a MySQL result
- *
- */
-function create_table_body($result,$file="index.php") {
-    if(mysql_num_rows($result) == 0) return "No results";
-    $table_body = "";
-    $zebra = true;
-    while($row = mysql_fetch_assoc($result)) {
-        $table_body .= "<tr class=\"";
-        $table_body .= $zebra ? "dark" : "light";
-        $table_body .= "\">\n";
-        foreach($row as $k => $v) {
-            $table_body .= "\t<td>";
-            $table_body .= link_to($k,$v,$file);
-            $table_body .= "</td>\n";
+    /**
+     *
+     * Create a table from the results
+     *
+     */
+    function generate() {
+        $html = "<table>";
+        $rows = mysql_num_rows($this->data);
+        if($rows > 1) {
+            $html .= $this->create_table_header();
+            $html .= $this->create_table_body();
+        } elseif($rows == 1) {
+            $html .= $this->create_single_item_table();
+        } else {
+            $html .= "No results";
         }
-        $table_body .= "</tr>\n";
-        $zebra = $zebra ? false : true;
+        $html .= "</table";
+        return $html;
     }
-    return $table_body;
-}
 
-/**
- *
- * Grab the the field names of the table
- *
- */
-function mysql_field_array( $res ) {
-    $field = mysql_num_fields( $res );
-    for ( $i = 0; $i < $field; $i++ ) {
-        $names[] = mysql_field_name( $res, $i );
+    /**
+     *
+     * Create table header
+     *
+     */
+    function create_table_header() {
+        if(mysql_num_rows($this->data) == 0) return "";
+        $header = "<tr>\n";
+        $fields = $this->mysql_field_array($this->data);
+        foreach($fields as $f) {
+            $header .= "\t<th>".$f."</th>\n";
+        }
+        $header .= "</tr>\n";
+        return $header;
     }
-    return $names;
-}
+    /**
+     *
+     * Create a table for a single object
+     *
+     */
+    function create_single_item_table($file="index.php") {
+        $table_body = "";
+        $zebra = true;
+        $row = mysql_fetch_assoc($this->data);
+        foreach($row as $k => $v) {
+            $table_body .= "<tr class=\"";
+            $table_body .= $zebra ? "dark" : "light";
+            $table_body .= "\">\n";
+            $table_body .= "\t<td>";
+            $table_body .= $k;
+            $table_body .= "</td>\n";
+            $table_body .= "\t<td>";
+            $table_body .= $v;
+            $table_body .= "</td>\n";
+            $table_body .= "</tr>\n";
+            $zebra = $zebra ? false : true;
+        }
+        return $table_body;
+    }
 
-/**
- *
- * Creates a link to the given source
- *
- */
-function link_to($k, $v, $file) {
-    return $v;
+    /**
+     *
+     * Create table rows and table cells from a MySQL result
+     *
+     */
+    function create_table_body() {
+        if(mysql_num_rows($this->data) == 0) return "No results";
+        $table_body = "";
+        $zebra = true;
+        while($row = mysql_fetch_assoc($this->data)) {
+            $table_body .= "<tr class=\"";
+            $table_body .= $zebra ? "dark" : "light";
+            $table_body .= "\">\n";
+            foreach($row as $k => $v) {
+                $table_body .= "\t<td>";
+                $table_body .= $v;
+                $table_body .= "</td>\n";
+            }
+            $table_body .= "</tr>\n";
+            $zebra = $zebra ? false : true;
+        }
+        return $table_body;
+    }
+
+    /**
+     *
+     * Grab the the field names of the table
+     *
+     */
+    function mysql_field_array( $res ) {
+        $field = mysql_num_fields( $res );
+        for ( $i = 0; $i < $field; $i++ ) {
+            $names[] = mysql_field_name( $res, $i );
+        }
+        return $names;
+    }
+
+    /**
+     *
+     * Creates a link to the given source
+     *
+     */
+    function link_to($column, $value, $object) {
+        if(isset($links[$object][$column])) {
+            $link = "<a href=\"?object=$object&value=$value\">$value</a>";
+            return $link;
+        }
+        return $value;
+    }
 }
 ?>
+
