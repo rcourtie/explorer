@@ -82,7 +82,7 @@ class ObjectView {
             $table_body .= $k;
             $table_body .= "</td>\n";
             $table_body .= "\t<td>";
-            $table_body .= $v;
+            $table_body .= $this->link_to($k, $v, $this->object);
             $table_body .= "</td>\n";
             $table_body .= "</tr>\n";
             $zebra = $zebra ? false : true;
@@ -133,8 +133,9 @@ class ObjectView {
      *
      */
     function link_to($column, $value, $object) {
-        if(isset($links[$object][$column])) {
-            $link = "<a href=\"?object=$object&value=$value\">$value</a>";
+        if(isset($this->links[$object][$column])) {
+            $r = $this->links[$object][$column];
+            $link = "<a href=\"?object=$r&id=$value\">$value</a>";
             return $link;
         }
         return $value;
