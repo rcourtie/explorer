@@ -53,7 +53,7 @@ $view = new ObjectView($result, $links, $related, $object);
         <link href="style/style.css" rel="stylesheet" type="text/css" />
     </head>
     <body>
-        <pre><? print_r($links); ?>
+        <!-- <pre><? print_r($links); ?> -->
         <h1><?= $object ?></h1>
         <?= $view->generate() ?>
     </body>
